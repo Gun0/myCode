@@ -8,19 +8,20 @@ local Player = require("app.roles.Player")
 local Enemy1 = require("app.roles.Enemy1")
 local Bullet = require("app.roles.Bullet")
 local Heart  = require("app.roles.Heart")
---local BackgroundLayer = require("app.scenes.BackgroundLayer")
+local BackgroundLayer = require("app.scenes.BackgroundLayer")
 --constructor
 GameScene.palyerX = nil
 GameScene.palyerY = nil
 GameScene.bullets = {}
 GameScene.enemys = {}
 GameScene.hearts = {}
+GameScene.removes = {}
 GameScene.count = 0
 GameScene.player  = nil
 GameScene.enemy = nil
 function GameScene:ctor()
 
-    self.backgroundLayer = BackgroundLayer:new()    
+    self.backgroundLayer = BackgroundLayer:new()
     	:addTo(self,-4)
 
     self.player = Player:new()
@@ -44,17 +45,17 @@ function GameScene:update(dt)
                 self:removeBullet(bullet_)
                 return true
             end
-            
+
             if Util.isOutside(bullet_)then
                 self:removeBullet(bullet_)
             end
             if Util.isOutside(enemy_)then
                 self:removeEnemy(enemy_)
-            end
+           end
         end
-     end
+    end
 
-     for eKey,enemy_ in pairs(self.enemys) do
+    for eKey,enemy_ in pairs(self.enemys) do
         if cc.rectIntersectsRect(self.player:getBoundingBox(),enemy_:getBoundingBox()) then
             local x,y = enemy_:getBoundingBox().x,enemy_:getBoundingBox().y
             self:onHitEnemy(enemy_,x,y)
@@ -71,21 +72,18 @@ function GameScene:update(dt)
                 --self:unScheduleUpdate()
             end
         end
-     end
-  
+    end
+
     for hKey,heart_ in pairs(self.hearts) do
         if cc.rectIntersectsRect(self.player:getBoundingBox(),heart_:getBoundingBox()) then
-            
+
             self.player:onHit(self.backgroundLayer,"heart")
-            self.hearts[hKey] = nil
-            heart_:removeSelf()
+            self:removeHeart(heart_)
         end
-        
         if Util.isOutside(heart_)then
-            self.hearts[heart_] = nil
-            heart_:removeSelf()
+            self:removeHeart(heart_)
         end
-        
+
     end
 end
 
@@ -139,16 +137,25 @@ function GameScene:boomAnimation(posx,posy)
 end
 
 
-function GameScene:removeBullet(bKey)
-    self.bullets[bKey] = nil
-    bKey:removeSelf()
+function GameScene:removeBullet(bullet)
+    --bullet:removeSelf()
+    self.bullets[bullet] = nil
+    performWithDelay(bullet,function() bullet:removeSelf() end,0.01)
 end
 
-function GameScene:removeEnemy(eKey)
-    self.enemys[eKey] = nil
-    eKey:removeSelf()
+function GameScene:removeEnemy(enemy)
+    --enemy:removeSelf()
+    self.enemys[enemy] = nil
+    
+    performWithDelay(enemy,function() enemy:removeSelf() end,0.01)
 end
 
+function GameScene:removeHeart(heart)
+    --heart:removeSelf()
+    self.hearts[heart] = nil
+
+    performWithDelay(heart,function() heart:removeSelf() end,0.01)
+end
 function GameScene:getPlayer()
     return self.player
 end
@@ -171,6 +178,7 @@ function GameScene:onHitEnemy(enemy,x,y)
 
     self:boomAnimation(posx,posy)
     self:removeEnemy(enemy)
+    --self.removes[enemy] = true
     self.count = self.count + 1
     self.backgroundLayer:addScore()
 end

@@ -2,12 +2,15 @@ local PauseLayer = require("app.scenes.PauseLayer")
 BackgroundLayer = class("BackgroundLayer",function()
     return display.newLayer("BackgroundLayer")
 end)
+
+
 BackgroundLayer.text = nil
 BackgroundLayer.pauseBtn = nil
 BackgroundLayer.state = "normal"
 BackgroundLayer.score = 0
 BackgroundLayer.hpText = nil
 BackgroundLayer.hp = 3
+
 function BackgroundLayer:ctor()
     local scene = cc.CSLoader:getInstance():createNodeWithFlatBuffersFile("MainScene.csb")
     scene:addTo(self)
@@ -25,8 +28,8 @@ function BackgroundLayer:ctor()
     self.pauseBtn = scene:getChildByName("pauseButton")
     self.pauseBtn:loadTextureNormal("pause.png")
     --dump(self.pauseBtn)
-    self.pauseBtn:pos(display.width-40, 40)
-    self.pauseBtn:setScale(0.3)
+    self.pauseBtn:pos(display.width-60, 40)
+    self.pauseBtn:setScale(0.5)
     self.pauseBtn:setTouchEnabled(true)
     --self.pauseBtn:addTo(self)
     self.pauseBtn:addTouchEventListener(handler(self,self.pause))
@@ -95,30 +98,6 @@ function BackgroundLayer:pause(sender, touchType)
     end  
 end
 
---function BackgroundLayer:pause(sender, touchType)
---    if touchType == ccui.TouchEventType.began then
---        return true
---    elseif touchType == ccui.TouchEventType.ended then
---        if self.state == "normal" then
---            display.pause()
---            self.state = "pause"
---            self.pauseBtn:loadTextureNormal("resume.png")
---        elseif  self.state == "pause" then
---            display.resume()
---            self.state = "normal"
---            self.pauseBtn:loadTextureNormal("pause.png")      
---        end
---        return true
---    end  
---end
-
-function BackgroundLayer:resume(sender, touchType)
-    if touchType == ccui.TouchEventType.began then
-        return true
-    elseif touchType == ccui.TouchEventType.ended then
-        print("hahahahhaa")
-    end
-end
 
 function BackgroundLayer:addScore()
     self.score = self.score + 1
