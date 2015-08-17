@@ -20,6 +20,9 @@ function GameoverNode:ctor()
     
     self.homeBtn = self.scene:getChildByName("homeBtn")
     self.homeBtn:addTouchEventListener(handler(self,self.backHome))
+    
+    self.exitBtn = self.scene:getChildByName("exitBtn")
+    self.exitBtn:addTouchEventListener(handler(self,self.exitGame))
 end
 
 function GameoverNode:share(sender, touchType)
@@ -31,7 +34,7 @@ function GameoverNode:share(sender, touchType)
         return true
     end  
 end
-function GameoverNode:setRecordText(record)    
+function GameoverNode:setRecordText(record)
     self.recordText:setString("My Record "..record)
 end
 
@@ -49,6 +52,16 @@ function GameoverNode:backHome(sender, touchType)
         self:removeSelf()
         return true
     end  
+end
+
+function GameoverNode:exitGame(sender, touchType)
+    if touchType == ccui.TouchEventType.began then
+        return true
+    elseif touchType == ccui.TouchEventType.ended then
+        print("exitGame")
+        app:exit()
+        return true
+    end 
 end
 
 return GameoverNode

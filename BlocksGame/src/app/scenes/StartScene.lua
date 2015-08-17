@@ -14,9 +14,30 @@ function StartScene:ctor()
     self.titleText = scene:getChildByName("titleText")
     
     self.startBtn = scene:getChildByName("startBtn")
-    self.startBtn:setTouchEnabled(true)
     self.startBtn:addTouchEventListener(handler(self,self.startGame))
     
+    self.musicBtn = scene:getChildByName("musicBtn")
+    self.musicBtn:addTouchEventListener(handler(self,self.musicCtrl))
+    
+    self.moreBtn = scene:getChildByName("moreBtn")
+    self.moreBtn:addTouchEventListener(handler(self,self.moreGame))
+    
+    self.noadsBtn = scene:getChildByName("noadsBtn")
+    self.noadsBtn:addTouchEventListener(handler(self,self.noAds))
+    self:setKeypadEnabled(true)
+    
+    self:addNodeEventListener(cc.KEYPAD_EVENT, function (event)  
+        if event.key == "back" then  
+            print("back")  
+            device.showAlert("Confirm Exit", "Are you sure exit game ?", {"YES", "NO"}, function (event)  
+                if event.buttonIndex == 1 then  
+                    CCDirector:sharedDirector():endToLua()  
+                else  
+                    device.cancelAlert()   
+                end  
+            end) 
+        end        
+    end)
 end
 
 function StartScene:startGame(sender, touchType)
@@ -28,6 +49,30 @@ function StartScene:startGame(sender, touchType)
     end 
 end
 
+function StartScene:musicCtrl(sender, touchType)
+    if touchType == ccui.TouchEventType.began then
+        return true
+    elseif touchType == ccui.TouchEventType.ended then
+        print("musiccccccccccccccc")
+        return true
+    end 
+end
+function StartScene:moreGame(sender, touchType)
+    if touchType == ccui.TouchEventType.began then
+        return true
+    elseif touchType == ccui.TouchEventType.ended then
+        print("more gameeeeeeeeee")
+        return true
+    end 
+end
+function StartScene:noAds(sender, touchType)
+    if touchType == ccui.TouchEventType.began then
+        return true
+    elseif touchType == ccui.TouchEventType.ended then
+        print("no adsssssssssss")
+        return true
+    end 
+end
 function StartScene:onEnter()
 end
 

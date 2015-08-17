@@ -257,7 +257,7 @@ transition.moveTo(sprite, {y = display.bottom, time = 1.5})
 ]]
 -- end --
 
-function transition.moveTo(target, args)
+function transition.blockImg(target, args)
     assert(not tolua.isnull(target), "transition.moveTo() - target is not cc.Node")
     local tx, ty = target:getPosition()
     local x = args.x or tx
