@@ -25,12 +25,19 @@
     math.randomseed(os.time())
     math.random(1,count)
 
+#### repeat-until
+    repeat
+       statement(s)
+    until( condition )
 ## Quick-Cocos2d-x
 
 #### 创建
 * `return cc.Scene:create()`
 * `return display.newScene("GameScene")`
 * `local node = cc.Sprite:create("node.png")`
+
+#### 关闭
+    app:exit()
 
 #### 监听事件
 ##### Node
@@ -45,6 +52,8 @@
 
 
     self:addNodeEventListener(cc.NODE_ENTER_FRAME_EVENT,handler(self , self.update))
+
+    self:scheduleUpdate()
 
 ##### Touch
 
@@ -67,11 +76,13 @@
         end
         return true
     end  
-end
+
 #### 转换坐标系
     local p = parent:convertToNodeSpace(cc.p(event.x,event.y))
     CCNode::convertToNodeSpace(CCPoint ptInWorld);
     CCNode::convertToWorldSpace(CCPoint ptInNode);
+    
+convertToWorldSpace 这个是将坐标转换到游戏世界坐标。因为一个精灵有一个坐标通过 getPosition来得到，但是这个坐标是一个相对于parent的坐标 所以实际的绝对坐标是取决于parent的position。所以通过`getParent()->convertToWorldSpace`就可以将这个坐标转换成游戏的绝对坐标。转换成世界坐标后 就可以和其他不在一个坐标系下的精灵转换到了同一个坐标系下 这样就可以进行坐标的计算了。计算完坐标 如果需要重新设置精灵的坐标 那么 这时候又要转换回相对坐标了（因为setPosition 也是设置的相对坐标） 这时候调用`getParent()->convertToNodeSpace`即可转换回来 调用setPosition来设置。
 
 #### 设置锚点
     setAnchorPoint(cc.p(0, 0));
@@ -95,3 +106,63 @@ end
 
 #### 透明度
     item:setOpacity(0)
+
+#### 延时
+    performWithDelay(bullet,function() bullet:removeSelf() end,0.01)
+
+#### transition
+    local function move()
+        self:moveToEnd(temp[k],startPos,endPos)
+    end
+                    
+    local action = transition.sequence({
+        cc.CallFunc:create(move)
+    })
+    self:runAction(action)
+
+#### Spawn
+    cc.Spawn:create(cc.RotateTo:create(1.3,90),cc.FadeOut:create(1.3))
+
+#### back
+    self:setKeypadEnabled(true)
+    
+    self:addNodeEventListener(cc.KEYPAD_EVENT, function (event)  
+        if event.key == "back" then  
+            print("back")  
+            device.showAlert("Confirm Exit", "Are you sure exit game ?", {"YES", "NO"}, function (event)  
+                if event.buttonIndex == 1 then  
+                    app:exit()
+                else  
+                    device.cancelAlert()   
+                end  
+            end) 
+        end        
+    end)
+
+#### plist动画
+
+    cc.SpriteFrameCache:getInstance():addSpriteFrames("BM.plist")
+    local boom = cc.Sprite:createWithSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("BM04.png"))
+    local p = item:getParent():convertToWorldSpace(cc.p(item:getPosition()))
+
+    local animation = cc.Animation:create()
+    for i = 4, 9 do
+        local file = string.format("BM%02d.png",i)
+        local frame = cc.SpriteFrameCache:getInstance():getSpriteFrame(file)
+        animation:addSpriteFrame(frame)
+    end
+    self.backgroundlayer.BOOM_OVER = false
+    animation:setDelayPerUnit(1.0 / 15.0)
+
+    local action = cc.Animate:create(animation)
+
+#### Particle System
+    local particle = cc.ParticleGalaxy:create()
+    particle:setTexture(cc.Director:getInstance():getTextureCache():addImage("gray.png"))
+    particle:setScale(0.3)
+    particle:setLifeVar(0.5)
+    
+    particle:setPosVar(cc.p(200,200))
+    particle:setRadialAccel(50)
+    particle:setPosition(p.x,p.y)
+    particle:addTo(self)
