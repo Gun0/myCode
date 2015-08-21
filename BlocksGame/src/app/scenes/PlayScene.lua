@@ -18,16 +18,14 @@ function PlayScene:ctor()
     self.data:load()
     self.record = self.data:get("record")
     self.record = self.record or 0
-    
     self.backgroundlayer = BackgroundLayer:new()
     self.backgroundlayer:initView(self.level)
     self.backgroundlayer:addTo(self,-4)
     self:setKeypadEnabled(true)
+    
     self:addNodeEventListener(cc.KEYPAD_EVENT, function (event)
         if event.key == "back" then
             self:back()
-        elseif event.key == "home" then
-            print("home")
         end
     end)
 end
@@ -41,7 +39,6 @@ function PlayScene:back()
         display.resume()
     else 
         self.pauseNode = PauseNode:new()
-        self.pauseNode:setPosition(display.cx,display.cy)
         self:addChild(self.pauseNode)
         display.pause()
     end
@@ -50,15 +47,17 @@ end
 
 function PlayScene:update()
     print("update")
-    --dump(self.backgroundlayer.BLOCKS_LIST)
     
     if self.level <= 15 then 
         for i,v in pairs(Levels.TARGET_POS_2)do
-            local item = self.backgroundlayer.frame:getChildByName(v)      
+            local item = self.backgroundlayer.frame:getChildByName(v)
+            local item2 = self.backgroundlayer.backFrame:getChildByName(v)
             if self.backgroundlayer.BLOCKS_LIST[v] == 0 and self.backgroundlayer.targets[v] == 1 then 
+                item:setTexture("blocks/black.png")
                 item:setTexture("blocks/black.png")
             elseif self.backgroundlayer.BLOCKS_LIST[v] == 0 then
                 item:setTexture("blocks/gray.png")
+                item2:setTexture("blocks/gray.png")
             else
                 item:setTexture("blocks/"..self.backgroundlayer.BLOCKS_LIST[v]..".png")
             end
@@ -66,39 +65,34 @@ function PlayScene:update()
     elseif self.level > 15 then
         for i,v in pairs(Levels.TARGET_POS_3)do
             local item = self.backgroundlayer.frame:getChildByName(v)
+            local item2 = self.backgroundlayer.backFrame:getChildByName(v)
             if self.backgroundlayer.BLOCKS_LIST[v] == 0 and self.backgroundlayer.targets[v] == 1 then 
                 item:setTexture("blocks/black.png")
+                item2:setTexture("blocks/black.png")
             elseif self.backgroundlayer.BLOCKS_LIST[v] == 0 then 
                 item:setTexture("blocks/gray.png")
+                item2:setTexture("blocks/gray.png")
             else
                 item:setTexture("blocks/"..self.backgroundlayer.BLOCKS_LIST[v]..".png")
             end
         end
     end
     self:isRemoveable()
-    performWithDelay(self,function() self:isLost() end,0.01)
+    self:isLost()
 end
 
 function PlayScene:updateOne(v)
-    print("updateOne")
-    if self.level <= 15 then 
-        local item = self.backgroundlayer.frame:getChildByName(v)      
-        if self.backgroundlayer.BLOCKS_LIST[v] == 0 and self.backgroundlayer.targets[v] == 1 then 
-            item:setTexture("blocks/black.png")
-        elseif self.backgroundlayer.BLOCKS_LIST[v] == 0 then
-            item:setTexture("blocks/gray.png")
-        else
-            item:setTexture("blocks/"..self.backgroundlayer.BLOCKS_LIST[v]..".png")
-        end
-    elseif self.level > 15 then
-        local item = self.backgroundlayer.frame:getChildByName(v)
-        if self.backgroundlayer.BLOCKS_LIST[v] == 0 and self.backgroundlayer.targets[v] == 1 then 
-            item:setTexture("blocks/black.png")
-        elseif self.backgroundlayer.BLOCKS_LIST[v] == 0 then 
-            item:setTexture("blocks/gray.png")
-        else
-            item:setTexture("blocks/"..self.backgroundlayer.BLOCKS_LIST[v]..".png")
-        end
+    print("updateOne"..v)
+    local item = self.backgroundlayer.frame:getChildByName(v)
+    local item2 = self.backgroundlayer.backFrame:getChildByName(v)      
+    if self.backgroundlayer.BLOCKS_LIST[v] == 0 and self.backgroundlayer.targets[v] == 1 then 
+        item:setTexture("blocks/black.png")
+        item2:setTexture("blocks/black.png")
+    elseif self.backgroundlayer.BLOCKS_LIST[v] == 0 then
+        item:setTexture("blocks/gray.png")
+        item2:setTexture("blocks/gray.png")
+    else
+        item:setTexture("blocks/"..self.backgroundlayer.BLOCKS_LIST[v]..".png")
     end
 end
 
@@ -113,6 +107,7 @@ function PlayScene:isWin()
     else
         if self.level < 24 then
             self.score = self.score + self.level * 100
+            self.backgroundlayer:setScore(self.score)
             self:addLevel()
             print("win")
         elseif self.level == 24 then
@@ -129,13 +124,10 @@ function PlayScene:isLost()
             self.flag = 1
         end
     end
-    --dump(self.backgroundlayer.BLOCKS_LIST)
     if self.flag ~= 0 then
-        print("not lost")
         return false
     else
         self:initGameOver()
-        print("lost")
         return true
     end
 end
@@ -143,17 +135,14 @@ end
 function PlayScene:initGameOver()
     local gameoverNode  = GameoverNode:new()
     if self.score > self.record then
-        gameoverNode.cheerImg:setOpacity(255)
+        gameoverNode:isNewRecord(true)
         self.record = self.score
         self.data:set("record", self.score)
         self.data:save()
     end
-
-    gameoverNode:setPosition(display.cx,display.cy)
     gameoverNode:setRecordText(self.record)
     gameoverNode:setScoreText(self.score)
     gameoverNode:addTo(self)
-    display.pause()
 end
 
 function PlayScene:isRemoveable()
@@ -220,7 +209,9 @@ function PlayScene:isEqual(a,b)
 end
 
 function PlayScene:startRemove()
+    self.boomCount = 0
     for i,v in pairs(self.removeList)do
+        self.boomCount = self.boomCount + 1
         self:boomAnimation(i,v)
     end
 end
@@ -229,55 +220,78 @@ end
 function PlayScene:addLevel()
     self.backgroundlayer:setTouchBlocksInvisiable()
     self.backgroundlayer.RORATE_OVER = false
+    
+    local levelUpImg = cc.Sprite:create("levelup.png")
+    levelUpImg:setPosition(display.cx,display.cy)
+    levelUpImg:setScale(0.01)
+    levelUpImg:addTo(self)
+    
+    local function remove()
+        levelUpImg:removeSelf()
+    end
+    local showAction = transition.sequence({
+        cc.ScaleTo:create(0.8,1.5),
+        cc.FadeOut:create(0.5),
+        cc.CallFunc:create(remove)
+    })
+    levelUpImg:runAction(showAction)
+    
     local function initView()
         self.level = self.level + 1
         self.backgroundlayer = BackgroundLayer:new()
         self.backgroundlayer:initView(self.level)
         self.backgroundlayer:addTo(self,-4)
+        self.backgroundlayer:setScore(self.score)
         self.backgroundlayer.RORATE_OVER = true
-    return true
+        return true
     end
+    local rotateAction = cc.Spawn:create(cc.RotateTo:create(1.3,90),cc.FadeOut:create(1.3))
+
     local action = transition.sequence({
-        cc.RotateTo:create(1,90),
+        rotateAction,
         cc.CallFunc:create(initView)
     })
-    
     self.backgroundlayer.frame:runAction(action)
 end
-function PlayScene:boomAnimation(i,v)
 
+function PlayScene:boomAnimation(i,v)
+    self.backgroundlayer.BOOM_OVER = false
     local pos = v
     local item = self.backgroundlayer.frame:getChildByName(pos)
-    cc.SpriteFrameCache:getInstance():addSpriteFrames("BM.plist")
-    local boom = cc.Sprite:createWithSpriteFrame(cc.SpriteFrameCache:getInstance():getSpriteFrame("BM04.png"))
     local p = item:getParent():convertToWorldSpace(cc.p(item:getPosition()))
     
-    boom:pos(p.x,p.y)
-    boom:setScale(0.5)
-    boom:addTo(self)
     self.backgroundlayer.BLOCKS_LIST[v] = 0
     self.backgroundlayer.targets[v] = 0
     self.removeList[i] = nil
     
-    local animation = cc.Animation:create()
-    for i = 4, 9 do
-        local file = string.format("BM%02d.png",i)
-        local frame = cc.SpriteFrameCache:getInstance():getSpriteFrame(file)
-        animation:addSpriteFrame(frame)
-    end
-    self.backgroundlayer.BOOM_OVER = false
-    animation:setDelayPerUnit(1.0 / 15.0)
-
-    local action = cc.Animate:create(animation)
+    local action = cc.FadeOut:create(0.5)
+    
+    local particle = cc.ParticleGalaxy:createWithTotalParticles(100)
+    particle:setTexture(cc.Director:getInstance():getTextureCache():addImage("gray.png"))
+    particle:setScale(0.3)
+    particle:setLife(0.5)
+    particle:setAngleVar(180)
+    
+    particle:setPosVar(cc.p(200,200))
+    particle:setRadialAccel(50)
+    particle:setPosition(p.x,p.y)
+    particle:addTo(self)
+    
     local function remove()
         self.score = self.score + 5 * self.level
-        boom:removeSelf()
-        self:update()
-        self.backgroundlayer.BOOM_OVER = true
+        self.backgroundlayer:setScore(self.score)
+        particle:removeSelf()
+        item:setOpacity(255)
+        
+        self.boomCount = self.boomCount - 1
+        if self.boomCount == 0 then
+            self.backgroundlayer.BOOM_OVER = true
+            self:update()
+        end
     end
-
+    
     local callfunc = cc.CallFunc:create(remove)
-    boom:runAction(cc.Sequence:create(action,callfunc))
+    item:runAction(cc.Sequence:create({action,callfunc}))
 end
 
 return PlayScene

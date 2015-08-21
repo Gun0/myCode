@@ -31,7 +31,7 @@ function StartScene:ctor()
             print("back")  
             device.showAlert("Confirm Exit", "Are you sure exit game ?", {"YES", "NO"}, function (event)  
                 if event.buttonIndex == 1 then  
-                    CCDirector:sharedDirector():endToLua()  
+                    app:exit()
                 else  
                     device.cancelAlert()   
                 end  

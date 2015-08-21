@@ -8,12 +8,13 @@ function GameoverNode:ctor()
 
     self.scoreText = self.scene:getChildByName("scoreText")
     self.cheerImg = self.scene:getChildByName("cheerImg")
+    self.overImg = self.scene:getChildByName("overImg")
 
     self.recordText = self.scene:getChildByName("recordText")
     self.recordImg = self.scene:getChildByName("recordImg")
-    self.cheerImg:setOpacity(0)
-    self.scoreText:setString("My Score ".."0")
-    self.recordText:setString("My Record ".."0")
+    self.recordImg:setOpacity(0)
+    self.scoreText:setString("00")
+    self.recordText:setString("BEST:".."0")
     
     self.shareBtn = self.scene:getChildByName("shareBtn")
     self.shareBtn:addTouchEventListener(handler(self,self.share))
@@ -35,11 +36,18 @@ function GameoverNode:share(sender, touchType)
     end  
 end
 function GameoverNode:setRecordText(record)
-    self.recordText:setString("My Record "..record)
+    self.recordText:setString("BEST:"..record)
 end
 
 function GameoverNode:setScoreText(score)
-    self.scoreText:setString("My Score "..score)
+    self.scoreText:setString(score)
+end
+
+function GameoverNode:isNewRecord(bool)
+    if bool then 
+        self.overImg:setOpacity(0)
+        self.recordImg:setOpacity(255)
+    end
 end
 
 function GameoverNode:backHome(sender, touchType)
