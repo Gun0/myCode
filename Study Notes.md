@@ -82,7 +82,7 @@
     CCNode::convertToNodeSpace(CCPoint ptInWorld);
     CCNode::convertToWorldSpace(CCPoint ptInNode);
     
-convertToWorldSpace 这个是将坐标转换到游戏世界坐标。因为一个精灵有一个坐标通过 getPosition来得到，但是这个坐标是一个相对于parent的坐标 所以实际的绝对坐标是取决于parent的position。所以通过`getParent()->convertToWorldSpace`就可以将这个坐标转换成游戏的绝对坐标。转换成世界坐标后 就可以和其他不在一个坐标系下的精灵转换到了同一个坐标系下 这样就可以进行坐标的计算了。计算完坐标 如果需要重新设置精灵的坐标 那么 这时候又要转换回相对坐标了（因为setPosition 也是设置的相对坐标） 这时候调用`getParent()->convertToNodeSpace`即可转换回来 调用setPosition来设置。
+convertToWorldSpace 这个是将坐标转换到游戏世界坐标。因为一个精灵有一个坐标通过 getPosition来得到，但是这个坐标是一个相对于parent的坐标 所以实际的绝对坐标是取决于parent的position。所以通过`getParent():convertToWorldSpace()`就可以将这个坐标转换成游戏的绝对坐标。转换成世界坐标后 就可以和其他不在一个坐标系下的精灵转换到了同一个坐标系下 这样就可以进行坐标的计算了。计算完坐标 如果需要重新设置精灵的坐标 那么 这时候又要转换回相对坐标了（因为setPosition 也是设置的相对坐标） 这时候调用`getParent():convertToNodeSpace()`即可转换回来 调用setPosition来设置。
 
 #### 设置锚点
     setAnchorPoint(cc.p(0, 0));
@@ -166,3 +166,48 @@ convertToWorldSpace 这个是将坐标转换到游戏世界坐标。因为一个
     particle:setRadialAccel(50)
     particle:setPosition(p.x,p.y)
     particle:addTo(self)
+
+#### MusicManager
+    local MusicManager = class("MusicManager")
+    MusicManager.isSoundPlay = true
+
+    function MusicManager:ctor()
+        audio.preloadMusic("music/BGM.mp3")
+        audio.preloadSound("music/LevelUp.wav")
+    end
+
+    function MusicManager:stopBGM()
+        if audio.isMusicPlaying() then
+            audio.stopMusic()
+            audio.stopAllSounds()
+            self.isSoundPlay = false
+        end
+    end
+
+    function MusicManager:playBGM()
+        if not audio.isMusicPlaying()then
+            audio.playMusic("music/BGM.mp3", true)
+        end
+    end
+
+    function MusicManager:levelUp()
+        if self.isSoundPlay then
+            audio.playSound("music/LevelUp.wav")
+        end
+    end
+
+    function MusicManager:pauseBGM()
+        if audio.isMusicPlaying() then
+            self.isMusicPause = true
+            audio.pauseMusic()
+        end
+    end
+
+    function MusicManager:resumeBGM()
+        if self.isMusicPause then
+            self.isMusicPause = false
+            audio.resumeMusic()
+        end
+    end
+
+    return MusicManager
