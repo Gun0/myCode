@@ -123,6 +123,17 @@ convertToWorldSpace 这个是将坐标转换到游戏世界坐标。因为一个
 #### Spawn
     cc.Spawn:create(cc.RotateTo:create(1.3,90),cc.FadeOut:create(1.3))
 
+#### home
+    self.eventDispatcher = cc.Director:getInstance():getEventDispatcher()
+    local AppBase = require("framework.cc.mvc.AppBase")
+    self.customListenerBg = cc.EventListenerCustom:create(AppBase.APP_ENTER_FOREGROUND_EVENT,handler(self, self.pause))
+    self.eventDispatcher:addEventListenerWithFixedPriority(self.customListenerBg, 1)
+
+
+    function PlayScene:onExit()
+        self.eventDispatcher:removeEventListener(self.customListenerBg)
+    end
+    
 #### back
     self:setKeypadEnabled(true)
     
@@ -211,3 +222,11 @@ convertToWorldSpace 这个是将坐标转换到游戏世界坐标。因为一个
     end
 
     return MusicManager
+
+#### 单例
+    function MusicManager:getInstance()
+        if instance == nil then
+            instance = self:new()
+        end
+        return instance
+    end
